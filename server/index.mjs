@@ -21,6 +21,12 @@ const port = Number(process.env.PORT || process.env.API_PORT || 3001);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.resolve(__dirname, "..", "dist");
 const passenger = globalThis.PhusionPassenger;
+const allowedOrigins = new Set(
+  (process.env.CORS_ALLOWED_ORIGINS || "https://youssefcrl.github.io,http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
 
 if (passenger?.configure) {
   passenger.configure({ autoInstall: false });
@@ -42,12 +48,16 @@ const asyncHandler = (handler) => (req, res, next) => {
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin) {
+  if (origin && allowedOrigins.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    req.headers["access-control-request-headers"] || "Content-Type"
+  );
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
+  res.setHeader("Access-Control-Max-Age", "86400");
   if (req.method === "OPTIONS") {
     res.sendStatus(204);
     return;

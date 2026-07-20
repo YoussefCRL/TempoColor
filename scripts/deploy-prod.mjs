@@ -149,6 +149,7 @@ const makeProductionEnv = () =>
   [
     `NODE_ENV=production`,
     `API_PORT=${process.env.API_PORT || 3001}`,
+    `CORS_ALLOWED_ORIGINS=${process.env.CORS_ALLOWED_ORIGINS || "https://youssefcrl.github.io,http://localhost:5173"}`,
     `MYSQL_URL=${process.env.MYSQL_URL}`,
     `MYSQL_DATABASE=${process.env.MYSQL_DATABASE}`,
     `MYSQL_SSL_CA_CERT=${JSON.stringify(process.env.MYSQL_SSL_CA_CERT).slice(1, -1)}`
