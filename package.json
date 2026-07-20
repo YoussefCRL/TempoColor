@@ -1,6 +1,6 @@
 {
   "name": "tempo-color",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:api\"",
     "dev:web": "vite",
@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "deploy": "npm run deploy:prod",
     "deploy:prod": "node scripts/deploy-prod.mjs",
-    "deploy:pages": "gh-pages -d dist",
+    "deploy:pages": "gh-pages -d dist --add",
     "db:setup": "node scripts/setup-mysql.mjs"
   },
   "dependencies": {
