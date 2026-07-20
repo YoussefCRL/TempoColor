@@ -9,9 +9,13 @@ dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 const rootDir = process.cwd();
-const remotePath = process.env.PROD_REMOTE_PATH || "/var/www/vhosts/recursing-blackwell.141-95-154-60.plesk.page/httpdocs";
+const remotePath =
+  process.env.PROD_REMOTE_PATH ||
+  "/var/www/vhosts/trackplus.app/commontestsdonotdelete.api.trackplus.app";
 const apiBaseUrl =
-  process.env.PROD_API_BASE_URL || "https://recursing-blackwell.141-95-154-60.plesk.page/api";
+  process.env.PROD_API_BASE_URL || "https://commontestsdonotdelete.api.trackplus.app/api";
+const requiredRemotePathSegment =
+  process.env.PROD_REMOTE_PATH_REQUIRED_SEGMENT || "commontestsdonotdelete.api.trackplus.app";
 const minimumDeployVersion = "1.0.1";
 
 const required = [
@@ -26,6 +30,12 @@ const required = [
 const missing = required.filter((key) => !process.env[key]);
 if (missing.length > 0) {
   throw new Error(`Missing required production env values: ${missing.join(", ")}`);
+}
+
+if (!remotePath.includes(requiredRemotePathSegment)) {
+  throw new Error(
+    `Refusing to deploy outside ${requiredRemotePathSegment}. Current PROD_REMOTE_PATH: ${remotePath}`
+  );
 }
 
 const runLocal = (command, args, options = {}) =>
