@@ -5389,6 +5389,44 @@ export default function App() {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const exportProgram = () => {
+    if (!activeProgram) {
+      return;
+    }
+    const assignedWorkoutIds = new Set(
+      activeProgram.days.map((day) => resolveProgramDayWorkout(activeProgram, day)?.id).filter(Boolean)
+    );
+    const assignedWorkouts = workouts.filter((workout) => assignedWorkoutIds.has(workout.id));
+    const payload = JSON.stringify(
+      {
+        exportedAt: new Date().toISOString(),
+        appVersion: APP_VERSION,
+        program: activeProgram,
+        assignedWorkouts,
+        currentWeek: {
+          weekKey: currentWeekKey,
+          completion: weekCompletion
+        }
+      },
+      null,
+      2
+    );
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeName =
+      activeProgram.name
+        .trim()
+        .replace(/[^a-z0-9-_]+/gi, "_")
+        .replace(/^_+|_+$/g, "") || "program";
+    link.href = url;
+    link.download = `${safeName}-program.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const importWorkout = async (file: File) => {
     if (!file) {
       return;
@@ -7434,6 +7472,9 @@ export default function App() {
                     </button>
                     <button className="btn ghost" type="button" onClick={resetCurrentWeekProgramCompletion}>
                       Reset Week
+                    </button>
+                    <button className="btn ghost" type="button" disabled={!activeProgram} onClick={exportProgram}>
+                      Export JSON
                     </button>
                   </div>
                 </div>
