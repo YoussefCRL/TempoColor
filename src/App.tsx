@@ -63,7 +63,7 @@ type RunPhase = {
 };
 
 type MainViewMode = "train" | "edit";
-type AppPage = "dashboard" | "program" | "workouts" | "skills" | "recovery";
+type AppPage = "dashboard" | "program" | "train" | "workouts" | "skills" | "recovery";
 
 type TrainingGoal = "strength" | "hypertrophy" | "endurance";
 
@@ -212,6 +212,7 @@ const PRIVILEGED_HIDDEN_USERNAME = "youssef";
 const APP_PAGE_ITEMS: Array<{ id: AppPage; label: string }> = [
   { id: "dashboard", label: "Dashboard" },
   { id: "program", label: "Program" },
+  { id: "train", label: "Train" },
   { id: "workouts", label: "Workouts" },
   { id: "skills", label: "Skills" },
   { id: "recovery", label: "Recovery" }
@@ -2578,6 +2579,10 @@ const loadWeightProgressLogs = (input?: unknown): WeightProgressLog[] => {
           typeof candidate.loggedAt === "number"
         );
       })
+      .map((log) => ({
+        ...log,
+        setsLogged: Math.max(1, Math.round(Number(log.setsLogged || 1)))
+      }))
       .sort((a, b) => b.loggedAt - a.loggedAt);
   } catch {
     return [];
@@ -4179,12 +4184,14 @@ export default function App() {
   const [activeProgramId, setActiveProgramId] = useState<string>("");
   const [programSession, setProgramSession] = useState<ProgramSessionContext | null>(null);
   const [programOnlyWorkouts, setProgramOnlyWorkouts] = useState<boolean>(false);
+  const [workoutProgramDayId, setWorkoutProgramDayId] = useState<string>("");
   const [showProgramDayDoneModal, setShowProgramDayDoneModal] = useState<boolean>(false);
   const [lastProgramRunPromptKey, setLastProgramRunPromptKey] = useState<string>("");
   const [programCompletion, setProgramCompletion] = useState<ProgramCompletionByWeek>({});
   const [weightProgressLogs, setWeightProgressLogs] = useState<WeightProgressLog[]>([]);
   const [dayCompletionHistory, setDayCompletionHistory] = useState<ProgramDayCompletionLog[]>([]);
   const [weightDraft, setWeightDraft] = useState<string>("");
+  const [weightSetsDraft, setWeightSetsDraft] = useState<string>("");
   const [weightRepsDraft, setWeightRepsDraft] = useState<string>("");
   const [weightRirDraft, setWeightRirDraft] = useState<string>("");
   const [weightNoteDraft, setWeightNoteDraft] = useState<string>("");
@@ -4287,7 +4294,9 @@ export default function App() {
         setProgramPlans(nextProgramPlans);
         setActiveProgramId(nextActiveProgramId);
         setProgramCompletion(loadProgramCompletion(data.programCompletion));
-        setWeightProgressLogs(mergeLogLists(loadWeightProgressLogs(data.weightProgressLogs), remoteWeights, 500));
+        setWeightProgressLogs(
+          mergeLogLists(loadWeightProgressLogs(data.weightProgressLogs), loadWeightProgressLogs(remoteWeights), 500)
+        );
         setDayCompletionHistory(
           mergeLogLists(loadDayCompletionHistory(data.dayCompletionHistory), remoteDays, 500)
         );
@@ -4503,6 +4512,8 @@ export default function App() {
   const todayDayIndex = ((new Date().getDay() + 6) % 7) + 1;
   const todayProgramDay =
     programTemplate.find((day) => day.dayIndex === todayDayIndex) ?? programTemplate[0] ?? null;
+  const workoutProgramDay =
+    programTemplate.find((day) => day.id === workoutProgramDayId) ?? programTemplate[0] ?? null;
   const resolveProgramDayWorkout = useCallback(
     (plan: ProgramPlan | null, day: ProgramTemplateDay | null): Workout | null => {
       if (!day) {
@@ -4521,6 +4532,7 @@ export default function App() {
     [currentSeededProgramPlans, workoutById]
   );
   const todayWorkout = resolveProgramDayWorkout(activeProgram, todayProgramDay);
+  const assignedWorkoutForProgramDay = resolveProgramDayWorkout(activeProgram, workoutProgramDay);
   const activeProgramWorkoutIds = useMemo(() => {
     const workoutIds = new Set<string>();
     programTemplate.forEach((day) => {
@@ -4753,6 +4765,7 @@ export default function App() {
   useEffect(() => {
     if (!selectedExercise) {
       setWeightDraft("");
+      setWeightSetsDraft("");
       setWeightRepsDraft("");
       setWeightRirDraft("");
       setWeightNoteDraft("");
@@ -4760,10 +4773,13 @@ export default function App() {
     }
     const lastLog = selectedExerciseWeightLogs[0];
     setWeightDraft(lastLog ? String(lastLog.weightKg) : "");
-    setWeightRepsDraft(String(getExerciseRepsPerSet(selectedExercise)));
-    setWeightRirDraft(String(getExerciseEffortCap(selectedExercise)));
+    setWeightSetsDraft(
+      String(lastLog?.setsLogged ?? getExerciseSetsTarget(selectedExercise))
+    );
+    setWeightRepsDraft(String(lastLog?.reps ?? getExerciseRepsPerSet(selectedExercise)));
+    setWeightRirDraft(String(lastLog?.rir ?? getExerciseEffortCap(selectedExercise)));
     setWeightNoteDraft("");
-  }, [selectedExercise?.id]);
+  }, [selectedExercise?.id, selectedExerciseWeightLogs[0]?.id]);
 
   useEffect(() => {
     if (!selectedExercise) {
@@ -5097,10 +5113,18 @@ export default function App() {
       return;
     }
     const weightKg = Number(weightDraft.replace(",", "."));
+    const setsLogged = Math.round(Number(weightSetsDraft));
     const reps = Math.round(Number(weightRepsDraft));
     const parsedRir = weightRirDraft.trim() ? Math.round(Number(weightRirDraft)) : null;
-    if (!Number.isFinite(weightKg) || weightKg <= 0 || !Number.isFinite(reps) || reps <= 0) {
-      window.alert("Enter a valid weight and reps before logging.");
+    if (
+      !Number.isFinite(weightKg) ||
+      weightKg <= 0 ||
+      !Number.isFinite(setsLogged) ||
+      setsLogged <= 0 ||
+      !Number.isFinite(reps) ||
+      reps <= 0
+    ) {
+      window.alert("Enter a valid weight, sets, and reps before logging.");
       return;
     }
     if (parsedRir !== null && (!Number.isFinite(parsedRir) || parsedRir < 0 || parsedRir > 10)) {
@@ -5111,6 +5135,7 @@ export default function App() {
       programSessionDay ?? programTemplate.find((day) => day.workoutId === selectedWorkout.id) ?? null;
     const matchedProgram = programSessionPlan ?? activeProgram;
     const now = Date.now();
+    const setIndex = Math.max(1, (selectedExerciseProgress?.setsDone ?? 0) + 1);
     const log: WeightProgressLog = {
       id: `weight-${now}-${createId()}`,
       userId: normalizeUsername(currentUser),
@@ -5122,7 +5147,8 @@ export default function App() {
       workoutName: selectedWorkout.name,
       exerciseId: selectedExercise.id,
       exerciseName: selectedExercise.name,
-      setIndex: Math.max(1, (selectedExerciseProgress?.setsDone ?? 0) + 1),
+      setIndex,
+      setsLogged,
       weightKg,
       reps,
       rir: parsedRir,
@@ -5132,6 +5158,11 @@ export default function App() {
       updatedAt: now
     };
     setWeightProgressLogs((prev) => mergeLogLists(prev, [log], 500));
+    setExerciseProgressSets(
+      selectedWorkout.id,
+      selectedExercise.id,
+      (selectedExerciseProgress?.setsDone ?? 0) + setsLogged
+    );
     setWeightNoteDraft("");
     syncWeightProgressLog(log);
   };
@@ -5417,7 +5448,7 @@ export default function App() {
   const startFromQuickStart = () => {
     clearProgramContext();
     if (selectedWorkout && selectedExercise) {
-      setActivePage("workouts");
+      setActivePage("train");
       startRun(selectedExercise, selectedWorkout.id);
     }
     closeQuickStart();
@@ -5574,6 +5605,33 @@ export default function App() {
         };
       })
     );
+  };
+
+  const assignSelectedWorkoutToProgramDay = () => {
+    if (!selectedWorkout || !workoutProgramDay) {
+      return;
+    }
+    updateProgramDay(workoutProgramDay.id, (day) => ({
+      ...day,
+      workoutId: selectedWorkout.id
+    }));
+  };
+
+  const createWorkoutForProgramDay = () => {
+    const newWorkout = makeWorkout(
+      workoutProgramDay ? `${workoutProgramDay.name} Workout` : `Workout ${workouts.length + 1}`
+    );
+    setWorkouts((prev) => [...prev, newWorkout]);
+    setSelectedWorkoutId(newWorkout.id);
+    setSelectedExerciseId(newWorkout.exercises[0]?.id ?? null);
+    if (workoutProgramDay) {
+      updateProgramDay(workoutProgramDay.id, (day) => ({
+        ...day,
+        workoutId: newWorkout.id
+      }));
+    }
+    setMainViewMode("edit");
+    setActivePage("train");
   };
 
   const setProgramDayCompletion = (
@@ -5824,7 +5882,7 @@ export default function App() {
     setProgramSession({ programId, dayId });
     setProgramOnlyWorkouts(true);
     setShowProgramDayDoneModal(false);
-    setActivePage("workouts");
+    setActivePage("train");
     setMainViewMode("train");
     const workout = resolveProgramDayWorkout(plan, day);
     if (!workout) {
@@ -5874,7 +5932,7 @@ export default function App() {
   const unlockProgramEditing = () => {
     clearProgramContext();
     setMainViewMode("edit");
-    setActivePage("workouts");
+    setActivePage("train");
   };
 
   const toggleFavoriteWorkout = (workoutId: string) => {
@@ -6062,7 +6120,7 @@ export default function App() {
           >
             {canRevealHiddenWorkouts && showHiddenWorkouts ? "PWA-ready | Hidden On" : "PWA-ready"}
           </button>
-          {activePage === "workouts" ? (
+          {activePage === "train" ? (
             <div className="mode-switch" role="tablist" aria-label="Main view mode">
               <button
                 className={`btn ghost small ${mainViewMode === "train" ? "mode-active" : ""}`}
@@ -6084,7 +6142,7 @@ export default function App() {
               </button>
             </div>
           ) : null}
-          {activePage === "workouts" ? (
+          {activePage === "train" ? (
             <button
               className="btn primary small"
               type="button"
@@ -6100,193 +6158,39 @@ export default function App() {
         </div>
       </header>
 
-      {activePage === "workouts" ? (
+      {activePage === "train" ? (
         <>
       <aside className="sidebar">
         <section className="panel">
           <div className="panel-title">
-            <h2>Workouts</h2>
-            {!isProgramContextActive || !programOnlyWorkouts ? (
-              <button className="btn ghost small" type="button" onClick={addWorkout}>
-                + Workout
-              </button>
-            ) : null}
+            <h2>Current Workout</h2>
+            <button className="btn ghost small" type="button" onClick={() => handlePageChange("workouts")}>
+              Change
+            </button>
           </div>
-          <div className="workout-tools">
-            <div className="filter-chips">
-              <button
-                className={`chip ${workoutFilter === "all" ? "active" : ""}`}
-                type="button"
-                onClick={() => handleWorkoutFilterChange("all")}
-              >
-                All
-              </button>
-              <button
-                className={`chip ${workoutFilter === "presets" ? "active" : ""}`}
-                type="button"
-                onClick={() => handleWorkoutFilterChange("presets")}
-              >
-                Presets
-              </button>
-              <button
-                className={`chip ${workoutFilter === "custom" ? "active" : ""}`}
-                type="button"
-                onClick={() => handleWorkoutFilterChange("custom")}
-              >
-                Custom
-              </button>
-            </div>
-            <input
-              className="input workout-search"
-              type="text"
-              value={workoutSearch}
-              onChange={(event) => setWorkoutSearch(event.target.value)}
-              placeholder="Search workouts..."
-            />
-          </div>
-
           {isProgramContextActive ? (
               <div className="program-context-strip">
                 <div className="list-meta">
                   {programSessionPlan?.name} &gt; {programSessionDay?.name}
                 </div>
-                <div className="filter-chips">
-                <button
-                  className={`chip ${programOnlyWorkouts ? "active" : ""}`}
-                  type="button"
-                  onClick={() => setProgramOnlyWorkouts(true)}
-                >
-                  Program Only
-                </button>
-                  <button
-                    className={`chip ${!programOnlyWorkouts ? "active" : ""}`}
-                    type="button"
-                    onClick={() => setProgramOnlyWorkouts(false)}
-                  >
-                    All Workouts
-                  </button>
-                  <button className="chip" type="button" onClick={unlockProgramEditing}>
-                    Unlock Editing
-                  </button>
-                </div>
               </div>
             ) : null}
-
-          {!isProgramContextActive && favoriteWorkouts.length > 0 ? (
-            <div className="quick-group">
-              <div className="quick-label">Favorites</div>
-              <div className="quick-list">
-                {favoriteWorkouts.map((workout) => (
-                  <button
-                    key={`fav-${workout.id}`}
-                    className="quick-pill"
-                    type="button"
-                    onClick={() => selectWorkout(workout)}
-                  >
-                    {workout.name}
-                  </button>
-                ))}
+          {selectedWorkout ? (
+            <div className="workout-entry active workout-summary-card">
+              <div className="workout-select">
+                <span className="list-title">{selectedWorkout.name}</span>
+                <span className="list-meta">{selectedWorkout.exercises.length} exercises</span>
+                <span className="list-meta">
+                  {selectedWorkoutProgress?.setsDone ?? 0}/{selectedWorkoutProgress?.setsTarget ?? 0} sets
+                </span>
+                <div className="mini-progress">
+                  <div style={{ width: `${selectedWorkoutProgress?.percent ?? 0}%` }} />
+                </div>
               </div>
             </div>
-          ) : null}
-
-          {!isProgramContextActive && recentWorkouts.length > 0 ? (
-            <div className="quick-group">
-              <div className="quick-label">Recent</div>
-              <div className="quick-list">
-                {recentWorkouts.map((workout) => (
-                  <button
-                    key={`recent-${workout.id}`}
-                    className="quick-pill"
-                    type="button"
-                    onClick={() => selectWorkout(workout)}
-                  >
-                    {workout.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {filteredWorkouts.length === 0 ? <div className="empty">No workouts match this filter.</div> : null}
-
-          <div className="panel-subtitle">Program Workouts</div>
-          {displayedProgramWorkouts.length > 0 ? (
-            <div className="list">{displayedProgramWorkouts.map((workout) => renderWorkoutEntry(workout))}</div>
           ) : (
-            <div className="empty">No program workouts match this filter.</div>
+            <div className="empty">Pick or create a workout from the Workouts tab.</div>
           )}
-
-          {showProgramLibrary ? (
-            <>
-              <div className="panel-subtitle">Workout Library</div>
-              {displayedLibraryWorkouts.length > 0 ? (
-                <div className="list">{displayedLibraryWorkouts.map((workout) => renderWorkoutEntry(workout))}</div>
-              ) : (
-                <div className="empty">No library workouts match this filter.</div>
-              )}
-            </>
-          ) : (
-            <div className="panel-actions">
-              <button className="btn ghost small" type="button" onClick={() => setProgramOnlyWorkouts(false)}>
-                Show Workout Library
-              </button>
-            </div>
-          )}
-
-          {filteredWorkouts.length > 6 ? (
-            <button className="btn ghost small" type="button" onClick={() => setShowAllWorkouts((prev) => !prev)}>
-              {showAllWorkouts ? "Show less" : "Show more"}
-            </button>
-          ) : null}
-
-          {!isProgramContextActive || !programOnlyWorkouts ? (
-            <div className="panel-actions">
-              <input
-                ref={importInputRef}
-                className="file-input"
-                type="file"
-                accept="application/json"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    void importWorkout(file);
-                  }
-                }}
-              />
-              <button
-                className="btn ghost small"
-                type="button"
-                onClick={() => importInputRef.current?.click()}
-              >
-                Import Workout
-              </button>
-              <button
-                className="btn ghost small"
-                type="button"
-                disabled={!selectedWorkout}
-                onClick={exportWorkout}
-              >
-                Export Workout
-              </button>
-              <button
-                className="btn ghost small"
-                type="button"
-                disabled={!hasSelectedWorkoutProgress}
-                onClick={resetWorkoutProgress}
-              >
-                Reset Workout Progress
-              </button>
-              <button
-                className="btn danger small"
-                type="button"
-                disabled={!selectedWorkout}
-                onClick={deleteWorkout}
-              >
-                Delete Workout
-              </button>
-            </div>
-          ) : null}
         </section>
 
         <section className="panel">
@@ -6619,6 +6523,17 @@ export default function App() {
                     />
                   </div>
                   <div className="field">
+                    <label>Sets</label>
+                    <input
+                      className="input"
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={weightSetsDraft}
+                      onChange={(event) => setWeightSetsDraft(event.target.value)}
+                    />
+                  </div>
+                  <div className="field">
                     <label>Reps</label>
                     <input
                       className="input"
@@ -6654,7 +6569,7 @@ export default function App() {
                 </div>
                 <div className="panel-actions">
                   <button className="btn primary small" type="button" onClick={logWeightProgress}>
-                    Log Weight Set
+                    Log Weight
                   </button>
                 </div>
                 <div className="panel-subtitle">Recent Logs</div>
@@ -6664,11 +6579,15 @@ export default function App() {
                       <div key={log.id} className="exercise-row">
                         <div className="exercise-main">
                           <span>
-                            {log.weightKg} kg x {log.reps}
+                            {log.weightKg} kg | {log.setsLogged} {log.setsLogged === 1 ? "set" : "sets"} x{" "}
+                            {log.reps}
                             {log.rir !== null ? ` | RIR ${log.rir}` : ""}
                           </span>
                           <span className="list-meta">
-                            {new Date(log.loggedAt).toLocaleDateString()} | Set {log.setIndex}
+                            {new Date(log.loggedAt).toLocaleDateString()} |{" "}
+                            {log.setsLogged > 1
+                              ? `Sets ${log.setIndex}-${log.setIndex + log.setsLogged - 1}`
+                              : `Set ${log.setIndex}`}
                           </span>
                           {log.note ? <span className="list-meta">{log.note}</span> : null}
                         </div>
@@ -7125,6 +7044,286 @@ export default function App() {
         </>
       ) : (
         <main className="main main-wide">
+          {activePage === "workouts" ? (
+            <div className="workouts-manage-grid">
+              <section className="panel">
+                <div className="panel-title">
+                  <h2>Workouts</h2>
+                  <button className="btn ghost small" type="button" onClick={addWorkout}>
+                    + Workout
+                  </button>
+                </div>
+                <div className="workout-tools">
+                  <div className="filter-chips">
+                    <button
+                      className={`chip ${workoutFilter === "all" ? "active" : ""}`}
+                      type="button"
+                      onClick={() => handleWorkoutFilterChange("all")}
+                    >
+                      All
+                    </button>
+                    <button
+                      className={`chip ${workoutFilter === "presets" ? "active" : ""}`}
+                      type="button"
+                      onClick={() => handleWorkoutFilterChange("presets")}
+                    >
+                      Presets
+                    </button>
+                    <button
+                      className={`chip ${workoutFilter === "custom" ? "active" : ""}`}
+                      type="button"
+                      onClick={() => handleWorkoutFilterChange("custom")}
+                    >
+                      Custom
+                    </button>
+                  </div>
+                  <input
+                    className="input workout-search"
+                    type="text"
+                    value={workoutSearch}
+                    onChange={(event) => setWorkoutSearch(event.target.value)}
+                    placeholder="Search workouts..."
+                  />
+                </div>
+
+                {favoriteWorkouts.length > 0 ? (
+                  <div className="quick-group">
+                    <div className="quick-label">Favorites</div>
+                    <div className="quick-list">
+                      {favoriteWorkouts.map((workout) => (
+                        <button
+                          key={`fav-${workout.id}`}
+                          className="quick-pill"
+                          type="button"
+                          onClick={() => selectWorkout(workout)}
+                        >
+                          {workout.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {recentWorkouts.length > 0 ? (
+                  <div className="quick-group">
+                    <div className="quick-label">Recent</div>
+                    <div className="quick-list">
+                      {recentWorkouts.map((workout) => (
+                        <button
+                          key={`recent-${workout.id}`}
+                          className="quick-pill"
+                          type="button"
+                          onClick={() => selectWorkout(workout)}
+                        >
+                          {workout.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {filteredWorkouts.length === 0 ? <div className="empty">No workouts match this filter.</div> : null}
+
+                <div className="panel-subtitle">Program Workouts</div>
+                {displayedProgramWorkouts.length > 0 ? (
+                  <div className="list">{displayedProgramWorkouts.map((workout) => renderWorkoutEntry(workout))}</div>
+                ) : (
+                  <div className="empty">No program workouts match this filter.</div>
+                )}
+
+                <div className="panel-subtitle">Workout Library</div>
+                {displayedLibraryWorkouts.length > 0 ? (
+                  <div className="list">{displayedLibraryWorkouts.map((workout) => renderWorkoutEntry(workout))}</div>
+                ) : (
+                  <div className="empty">No library workouts match this filter.</div>
+                )}
+
+                {filteredWorkouts.length > 6 ? (
+                  <button className="btn ghost small" type="button" onClick={() => setShowAllWorkouts((prev) => !prev)}>
+                    {showAllWorkouts ? "Show less" : "Show more"}
+                  </button>
+                ) : null}
+
+                <div className="panel-actions">
+                  <input
+                    ref={importInputRef}
+                    className="file-input"
+                    type="file"
+                    accept="application/json"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) {
+                        void importWorkout(file);
+                      }
+                    }}
+                  />
+                  <button
+                    className="btn ghost small"
+                    type="button"
+                    onClick={() => importInputRef.current?.click()}
+                  >
+                    Import Workout
+                  </button>
+                  <button
+                    className="btn ghost small"
+                    type="button"
+                    disabled={!selectedWorkout}
+                    onClick={exportWorkout}
+                  >
+                    Export Workout
+                  </button>
+                  <button
+                    className="btn ghost small"
+                    type="button"
+                    disabled={!hasSelectedWorkoutProgress}
+                    onClick={resetWorkoutProgress}
+                  >
+                    Reset Progress
+                  </button>
+                  <button
+                    className="btn danger small"
+                    type="button"
+                    disabled={!selectedWorkout}
+                    onClick={deleteWorkout}
+                  >
+                    Delete Workout
+                  </button>
+                </div>
+              </section>
+
+              <section className="panel">
+                <div className="panel-title">
+                  <h2>Program Assignment</h2>
+                  <span className="pill subtle">{activeProgramLabel}</span>
+                </div>
+                <div className="run-settings-grid">
+                  <div className="field">
+                    <label>Program</label>
+                    <select
+                      className="input"
+                      value={activeProgram?.id ?? ""}
+                      onChange={(event) => setActiveProgramId(event.target.value)}
+                    >
+                      {programPlans.map((plan) => (
+                        <option key={`workout-program-${plan.id}`} value={plan.id}>
+                          {plan.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Program Day</label>
+                    <select
+                      className="input"
+                      value={workoutProgramDay?.id ?? ""}
+                      onChange={(event) => setWorkoutProgramDayId(event.target.value)}
+                    >
+                      {programTemplate.map((day) => (
+                        <option key={`workout-day-${day.id}`} value={day.id}>
+                          Day {day.dayIndex} - {day.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="progress-card assignment-card">
+                  <div className="list-meta">Assigned workout</div>
+                  <div className="list-title">
+                    {assignedWorkoutForProgramDay?.name ?? "No workout assigned"}
+                  </div>
+                  {selectedWorkout ? (
+                    <div className="list-meta">Selected: {selectedWorkout.name}</div>
+                  ) : null}
+                </div>
+                <div className="panel-actions">
+                  <button
+                    className="btn primary small"
+                    type="button"
+                    disabled={!selectedWorkout || !workoutProgramDay}
+                    onClick={assignSelectedWorkoutToProgramDay}
+                  >
+                    Assign Selected
+                  </button>
+                  <button className="btn ghost small" type="button" onClick={createWorkoutForProgramDay}>
+                    Create For Day
+                  </button>
+                  <button
+                    className="btn ghost small"
+                    type="button"
+                    disabled={!assignedWorkoutForProgramDay || !activeProgram || !workoutProgramDay}
+                    onClick={() =>
+                      activeProgram && workoutProgramDay
+                        ? openProgramDay(activeProgram.id, workoutProgramDay.id)
+                        : undefined
+                    }
+                  >
+                    Train
+                  </button>
+                </div>
+              </section>
+
+              <section className="panel selected-workout-panel">
+                <div className="panel-title">
+                  <h2>Selected Workout</h2>
+                  <button
+                    className="btn primary small"
+                    type="button"
+                    disabled={!selectedWorkout}
+                    onClick={() => {
+                      setMainViewMode("train");
+                      setActivePage("train");
+                    }}
+                  >
+                    Train
+                  </button>
+                </div>
+                {selectedWorkout ? (
+                  <>
+                    <div className="progress-card">
+                      <div className="progress-header">
+                        <div>
+                          <div className="list-title">{selectedWorkout.name}</div>
+                          <div className="list-meta">{selectedWorkout.exercises.length} exercises</div>
+                        </div>
+                        <button
+                          className="btn ghost small"
+                          type="button"
+                          onClick={() => {
+                            setMainViewMode("edit");
+                            setActivePage("train");
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <div className="mini-progress">
+                        <div style={{ width: `${selectedWorkoutProgress?.percent ?? 0}%` }} />
+                      </div>
+                    </div>
+                    <div className="panel-subtitle">Exercises</div>
+                    <div className="list">
+                      {selectedWorkout.exercises.map((exercise) => (
+                        <button
+                          key={`selected-workout-exercise-${exercise.id}`}
+                          className={`exercise-row exercise-main ${exercise.id === selectedExercise?.id ? "active" : ""}`}
+                          type="button"
+                          onClick={() => setSelectedExerciseId(exercise.id)}
+                        >
+                          <span>{exercise.name}</span>
+                          <span className="list-meta">
+                            {getExerciseTargetLabel(exercise)} | Tempo {formatTempo(exercise.phases)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="empty">Select a workout from the library.</div>
+                )}
+              </section>
+            </div>
+          ) : null}
+
           {activePage === "dashboard" ? (
             <section className="panel dashboard-shell">
               <div className="panel-title">
@@ -7198,158 +7397,235 @@ export default function App() {
           ) : null}
 
           {activePage === "program" ? (
-            <section className="panel">
-              <div className="panel-title">
-                <h2>Program Mode</h2>
-                <span className="pill subtle">Week {currentWeekKey}</span>
-              </div>
-              <div className="field">
-                <label>Program</label>
-                <select
-                  className="input"
-                  value={activeProgram?.id ?? ""}
-                  onChange={(event) => setActiveProgramId(event.target.value)}
-                >
-                  {programPlans.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.name}
-                    </option>
-                  ))}
-                </select>
-                {activeProgram?.description ? (
-                  <div className="list-meta">{activeProgram.description}</div>
-                ) : null}
-              </div>
-              <div className="progress-bar">
-                <div style={{ width: `${programCompletionPercent}%` }} />
-              </div>
-              <div className="progress-meta">
-                <span>
-                  {programCompletedDays}/{programTemplate.length} days completed
-                </span>
-                <button className="btn ghost tiny" type="button" onClick={resetCurrentWeekProgramCompletion}>
-                  Reset Week
-                </button>
-              </div>
-              <div className="program-days">
-                {[...programTemplate]
-                  .sort((a, b) => a.dayIndex - b.dayIndex)
-                  .map((day) => {
-                    const assignedWorkout = resolveProgramDayWorkout(activeProgram, day);
-                    const dayCompletionKey = makeProgramDayCompletionKey(
-                      activeProgram?.id ?? "program-default",
-                      day.id
-                    );
-                    const dayComplete = Boolean(weekCompletion[dayCompletionKey] ?? weekCompletion[day.id]);
-                    return (
-                      <article key={day.id} className={`program-day ${dayComplete ? "done" : ""}`}>
-                        <div className="program-day-head">
-                          <span className="program-day-index">Day {day.dayIndex}</span>
-                          <label className="inline-check">
+            <div className="program-mode-shell">
+              <section className="program-overview">
+                <div className="program-overview-main">
+                  <div className="program-eyebrow">Week {currentWeekKey}</div>
+                  <div className="program-title-row">
+                    <h2>{activeProgramLabel}</h2>
+                    <select
+                      className="input program-select"
+                      value={activeProgram?.id ?? ""}
+                      onChange={(event) => setActiveProgramId(event.target.value)}
+                    >
+                      {programPlans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {activeProgram?.description ? (
+                    <div className="program-description">{activeProgram.description}</div>
+                  ) : null}
+                  <div className="program-overview-actions">
+                    <button
+                      className="btn primary"
+                      type="button"
+                      disabled={!todayWorkout}
+                      onClick={() => {
+                        if (!activeProgram || !todayProgramDay) {
+                          return;
+                        }
+                        openProgramDay(activeProgram.id, todayProgramDay.id);
+                      }}
+                    >
+                      Start Today
+                    </button>
+                    <button className="btn ghost" type="button" onClick={resetCurrentWeekProgramCompletion}>
+                      Reset Week
+                    </button>
+                  </div>
+                </div>
+                <div className="program-today-card">
+                  <span className="program-stat-label">Today</span>
+                  <strong>{todayProgramDay?.name ?? "No day template"}</strong>
+                  <span>{todayWorkout ? todayWorkout.name : "No workout assigned"}</span>
+                  <div className="program-today-mark">{todayWorkout ? "Ready" : "Needs workout"}</div>
+                </div>
+              </section>
+
+              <section className="program-stats-grid">
+                <article className="program-stat-card">
+                  <span className="program-stat-label">Completed</span>
+                  <strong>
+                    {programCompletedDays}/{programTemplate.length}
+                  </strong>
+                  <div className="program-progress-track">
+                    <div style={{ width: `${programCompletionPercent}%` }} />
+                  </div>
+                </article>
+                <article className="program-stat-card">
+                  <span className="program-stat-label">Program Workouts</span>
+                  <strong>{activeProgramWorkoutIds.size}</strong>
+                  <span className="list-meta">Assigned this week</span>
+                </article>
+                <article className="program-stat-card">
+                  <span className="program-stat-label">Next Day</span>
+                  <strong>{todayProgramDay ? `Day ${todayProgramDay.dayIndex}` : "-"}</strong>
+                  <span className="list-meta">{todayProgramDay?.optional ? "Optional" : "Required"}</span>
+                </article>
+              </section>
+
+              <section className="program-layout">
+                <div className="program-schedule-panel">
+                  <div className="program-section-head">
+                    <div>
+                      <div className="panel-subtitle progress-heading">Schedule</div>
+                      <h3>Training Week</h3>
+                    </div>
+                    <span className="pill subtle">{Math.round(programCompletionPercent)}% done</span>
+                  </div>
+                  <div className="program-card-grid">
+                    {[...programTemplate]
+                      .sort((a, b) => a.dayIndex - b.dayIndex)
+                      .map((day) => {
+                        const assignedWorkout = resolveProgramDayWorkout(activeProgram, day);
+                        const assignedProgress = assignedWorkout
+                          ? getWorkoutProgressView(progress, assignedWorkout)
+                          : null;
+                        const dayCompletionKey = makeProgramDayCompletionKey(
+                          activeProgram?.id ?? "program-default",
+                          day.id
+                        );
+                        const dayComplete = Boolean(weekCompletion[dayCompletionKey] ?? weekCompletion[day.id]);
+                        const isToday = todayProgramDay?.id === day.id;
+                        return (
+                          <article
+                            key={day.id}
+                            className={`program-day-card ${dayComplete ? "done" : ""} ${isToday ? "today" : ""}`}
+                          >
+                            <div className="program-day-card-top">
+                              <div className="program-day-badge">Day {day.dayIndex}</div>
+                              <div className="program-day-status">
+                                {dayComplete ? "Complete" : isToday ? "Today" : day.optional ? "Optional" : "Planned"}
+                              </div>
+                            </div>
                             <input
-                              type="checkbox"
-                              checked={day.optional}
+                              className="input program-day-name"
+                              type="text"
+                              value={day.name}
                               onChange={(event) =>
                                 updateProgramDay(day.id, (current) => ({
                                   ...current,
-                                  optional: event.target.checked
+                                  name: event.target.value
                                 }))
                               }
                             />
-                            Optional
-                          </label>
-                        </div>
-                        <div className="program-day-grid">
-                          <input
-                            className="input"
-                            type="text"
-                            value={day.name}
-                            onChange={(event) =>
-                              updateProgramDay(day.id, (current) => ({
-                                ...current,
-                                name: event.target.value
-                              }))
-                            }
-                          />
-                          <select
-                            className="input"
-                            value={assignedWorkout?.id ?? day.workoutId ?? ""}
-                            onChange={(event) =>
-                              updateProgramDay(day.id, (current) => ({
-                                ...current,
-                                workoutId: event.target.value || null
-                              }))
-                            }
-                          >
-                            <option value="">No workout</option>
-                            {assignedWorkout?.hidden && !showHiddenWorkouts ? (
-                              <option value={assignedWorkout.id}>{assignedWorkout.name}</option>
-                            ) : null}
-                            {visibleWorkouts.map((workout) => (
-                              <option key={`day-${day.id}-workout-${workout.id}`} value={workout.id}>
-                                {workout.name}
-                              </option>
-                            ))}
-                          </select>
-                          <textarea
-                            className="input advice-input"
-                            value={day.notes}
-                            onChange={(event) =>
-                              updateProgramDay(day.id, (current) => ({
-                                ...current,
-                                notes: event.target.value
-                              }))
-                            }
-                            placeholder="Intent, cues, or substitutions..."
-                          />
-                        </div>
-                        <div className="program-day-actions">
-                          <label className="inline-check">
-                            <input
-                              type="checkbox"
-                              checked={dayComplete}
-                              onChange={(event) => setProgramDayCompletion(day.id, event.target.checked)}
+                            <select
+                              className="input"
+                              value={assignedWorkout?.id ?? day.workoutId ?? ""}
+                              onChange={(event) =>
+                                updateProgramDay(day.id, (current) => ({
+                                  ...current,
+                                  workoutId: event.target.value || null
+                                }))
+                              }
+                            >
+                              <option value="">No workout</option>
+                              {assignedWorkout?.hidden && !showHiddenWorkouts ? (
+                                <option value={assignedWorkout.id}>{assignedWorkout.name}</option>
+                              ) : null}
+                              {visibleWorkouts.map((workout) => (
+                                <option key={`day-${day.id}-workout-${workout.id}`} value={workout.id}>
+                                  {workout.name}
+                                </option>
+                              ))}
+                            </select>
+                            {assignedProgress ? (
+                              <div className="program-day-progress">
+                                <span>
+                                  {assignedProgress.completedExercises}/{assignedProgress.totalExercises} exercises
+                                </span>
+                                <div className="program-progress-track compact">
+                                  <div style={{ width: `${assignedProgress.percent}%` }} />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="program-day-progress muted">No workout assigned</div>
+                            )}
+                            <textarea
+                              className="input advice-input program-notes"
+                              value={day.notes}
+                              onChange={(event) =>
+                                updateProgramDay(day.id, (current) => ({
+                                  ...current,
+                                  notes: event.target.value
+                                }))
+                              }
+                              placeholder="Intent, cues, or substitutions..."
                             />
-                            Completed this week
-                          </label>
-                          <button
-                            className="btn ghost tiny"
-                            type="button"
-                            disabled={!assignedWorkout}
-                            onClick={() =>
-                              activeProgram?.id ? openProgramDay(activeProgram.id, day.id) : undefined
-                            }
-                          >
-                            Open Workout
-                          </button>
-                        </div>
-                      </article>
-                    );
-                  })}
-              </div>
-              <div className="panel-subtitle">Completion History</div>
-              {recentDayCompletionHistory.length > 0 ? (
-                <div className="list">
-                  {recentDayCompletionHistory.map((log) => (
-                    <div key={log.id} className="exercise-row">
-                      <div className="exercise-main">
-                        <span>{log.dayName}</span>
-                        <span className="list-meta">
-                          {log.programName} | Week {log.weekKey} |{" "}
-                          {log.completed ? "Completed" : "Marked incomplete"}
-                        </span>
-                        <span className="list-meta">
-                          {new Date(log.updatedAt).toLocaleDateString()}
-                          {log.workoutName ? ` | ${log.workoutName}` : ""}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                            <div className="program-day-actions">
+                              <label className="inline-check">
+                                <input
+                                  type="checkbox"
+                                  checked={day.optional}
+                                  onChange={(event) =>
+                                    updateProgramDay(day.id, (current) => ({
+                                      ...current,
+                                      optional: event.target.checked
+                                    }))
+                                  }
+                                />
+                                Optional
+                              </label>
+                              <label className="inline-check">
+                                <input
+                                  type="checkbox"
+                                  checked={dayComplete}
+                                  onChange={(event) => setProgramDayCompletion(day.id, event.target.checked)}
+                                />
+                                Done
+                              </label>
+                            </div>
+                            <button
+                              className="btn primary small program-day-open"
+                              type="button"
+                              disabled={!assignedWorkout}
+                              onClick={() =>
+                                activeProgram?.id ? openProgramDay(activeProgram.id, day.id) : undefined
+                              }
+                            >
+                              Train
+                            </button>
+                          </article>
+                        );
+                      })}
+                  </div>
                 </div>
-              ) : (
-                <div className="empty">No completed program days recorded yet.</div>
-              )}
-            </section>
+
+                <aside className="program-history-panel">
+                  <div className="program-section-head">
+                    <div>
+                      <div className="panel-subtitle progress-heading">History</div>
+                      <h3>Recent Completion</h3>
+                    </div>
+                  </div>
+                  {recentDayCompletionHistory.length > 0 ? (
+                    <div className="list">
+                      {recentDayCompletionHistory.map((log) => (
+                        <div key={log.id} className="program-history-row">
+                          <div className="program-history-dot" />
+                          <div className="exercise-main">
+                            <span>{log.dayName}</span>
+                            <span className="list-meta">
+                              {log.programName} | Week {log.weekKey}
+                            </span>
+                            <span className="list-meta">
+                              {log.completed ? "Completed" : "Marked incomplete"} |{" "}
+                              {new Date(log.updatedAt).toLocaleDateString()}
+                              {log.workoutName ? ` | ${log.workoutName}` : ""}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty">No completed program days recorded yet.</div>
+                  )}
+                </aside>
+              </section>
+            </div>
           ) : null}
 
           {activePage === "skills" ? (
@@ -7544,7 +7820,7 @@ export default function App() {
         </main>
       )}
 
-      {isQuickStartOpen && !run && (activePage === "dashboard" || activePage === "workouts") ? (
+      {isQuickStartOpen && !run && (activePage === "dashboard" || activePage === "train" || activePage === "workouts") ? (
         <div className="quick-start-overlay">
           <div className="quick-start-card">
             <div className="quick-start-title">Quick Start</div>

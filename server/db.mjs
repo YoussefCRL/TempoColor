@@ -141,6 +141,7 @@ const createSchema = async (pool) => {
       exercise_id VARCHAR(96) NOT NULL,
       exercise_name VARCHAR(255) NOT NULL,
       set_index INT NOT NULL,
+      sets_logged INT NOT NULL DEFAULT 1,
       weight_kg DECIMAL(8,2) NOT NULL,
       reps INT NOT NULL,
       rir INT NULL,
@@ -154,6 +155,11 @@ const createSchema = async (pool) => {
       INDEX idx_weight_user_logged_at (username, logged_at)
     )
   `);
+  await pool.query("ALTER TABLE weight_progress_logs ADD COLUMN sets_logged INT NOT NULL DEFAULT 1 AFTER set_index").catch((error) => {
+    if (error?.code !== "ER_DUP_FIELDNAME") {
+      throw error;
+    }
+  });
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS program_day_completion_logs (
@@ -350,9 +356,9 @@ export const saveWeightProgressLog = async (usernameInput, log) => {
     `
       INSERT INTO weight_progress_logs (
         id, username, program_id, program_name, day_id, day_name, workout_id, workout_name,
-        exercise_id, exercise_name, set_index, weight_kg, reps, rir, note, logged_at, created_at, updated_at
+        exercise_id, exercise_name, set_index, sets_logged, weight_kg, reps, rir, note, logged_at, created_at, updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         program_id = VALUES(program_id),
         program_name = VALUES(program_name),
@@ -363,6 +369,7 @@ export const saveWeightProgressLog = async (usernameInput, log) => {
         exercise_id = VALUES(exercise_id),
         exercise_name = VALUES(exercise_name),
         set_index = VALUES(set_index),
+        sets_logged = VALUES(sets_logged),
         weight_kg = VALUES(weight_kg),
         reps = VALUES(reps),
         rir = VALUES(rir),
@@ -382,6 +389,7 @@ export const saveWeightProgressLog = async (usernameInput, log) => {
       log.exerciseId,
       log.exerciseName,
       log.setIndex,
+      Math.max(1, Math.round(Number(log.setsLogged || 1))),
       log.weightKg,
       log.reps,
       log.rir,
@@ -447,6 +455,7 @@ export const getRecentWeightProgressLogs = async (usernameInput, maxItems = 80) 
         exercise_id AS exerciseId,
         exercise_name AS exerciseName,
         set_index AS setIndex,
+        sets_logged AS setsLogged,
         CAST(weight_kg AS DOUBLE) AS weightKg,
         reps,
         rir,

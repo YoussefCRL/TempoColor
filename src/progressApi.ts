@@ -12,6 +12,7 @@ export type WeightProgressLog = {
   exerciseId: string;
   exerciseName: string;
   setIndex: number;
+  setsLogged: number;
   weightKg: number;
   reps: number;
   rir: number | null;
