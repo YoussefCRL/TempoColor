@@ -1,3 +1,5 @@
+import { APP_VERSION } from "./appVersion";
+
 export type WeightProgressLog = {
   id: string;
   userId: string;
@@ -58,13 +60,20 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/
 
 const normalizeUsername = (value: string): string => value.trim().toLowerCase();
 
+const makeApiUrl = (path: string): string => {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${API_BASE_URL}${path}${separator}v=${encodeURIComponent(APP_VERSION)}`;
+};
+
 const apiRequest = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const headers = new Headers(init?.headers);
   if (init?.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(makeApiUrl(path), {
     ...init,
+    cache: "no-store",
+    credentials: "omit",
     headers
   });
   const payload = (await response.json().catch(() => ({}))) as { error?: string };

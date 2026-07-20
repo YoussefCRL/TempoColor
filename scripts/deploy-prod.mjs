@@ -12,6 +12,7 @@ const rootDir = process.cwd();
 const remotePath = process.env.PROD_REMOTE_PATH || "/var/www/vhosts/recursing-blackwell.141-95-154-60.plesk.page/httpdocs";
 const apiBaseUrl =
   process.env.PROD_API_BASE_URL || "https://recursing-blackwell.141-95-154-60.plesk.page/api";
+const minimumDeployVersion = "1.0.1";
 
 const required = [
   "PROD_SSH_HOST",
@@ -46,6 +47,69 @@ const runLocal = (command, args, options = {}) =>
       }
     });
   });
+
+const parseVersion = (value) => {
+  const match = String(value || "").match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) {
+    return [0, 0, 0];
+  }
+  return match.slice(1).map((part) => Number(part));
+};
+
+const compareVersions = (left, right) => {
+  const leftParts = parseVersion(left);
+  const rightParts = parseVersion(right);
+  for (let index = 0; index < 3; index += 1) {
+    if (leftParts[index] !== rightParts[index]) {
+      return leftParts[index] - rightParts[index];
+    }
+  }
+  return 0;
+};
+
+const incrementPatchVersion = (value) => {
+  const [major, minor, patch] = parseVersion(value);
+  return `${major}.${minor}.${patch + 1}`;
+};
+
+const writeJsonFile = async (filePath, value) => {
+  await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+};
+
+const updatePackageLockVersion = async (nextVersion) => {
+  const lockPath = path.join(rootDir, "package-lock.json");
+  const raw = await fs.readFile(lockPath, "utf8").catch(() => "");
+  if (!raw) {
+    return;
+  }
+  const lock = JSON.parse(raw);
+  if (lock.version) {
+    lock.version = nextVersion;
+  }
+  if (lock.packages?.[""]) {
+    lock.packages[""].version = nextVersion;
+  }
+  await writeJsonFile(lockPath, lock);
+};
+
+const bumpDeployVersion = async () => {
+  const packagePath = path.join(rootDir, "package.json");
+  const pkg = JSON.parse(await fs.readFile(packagePath, "utf8"));
+  const currentVersion = pkg.version || "0.0.0";
+  const nextVersion =
+    compareVersions(currentVersion, minimumDeployVersion) < 0
+      ? minimumDeployVersion
+      : incrementPatchVersion(currentVersion);
+
+  pkg.version = nextVersion;
+  await writeJsonFile(packagePath, pkg);
+  await updatePackageLockVersion(nextVersion);
+  await fs.writeFile(
+    path.join(rootDir, "src", "appVersion.ts"),
+    `export const APP_VERSION = "${nextVersion}";\n`
+  );
+  return nextVersion;
+};
 
 const connectSsh = () =>
   new Promise((resolve, reject) => {
@@ -156,6 +220,8 @@ const makeProductionEnv = () =>
   ].join("\n") + "\n";
 
 const main = async () => {
+  const deployVersion = await bumpDeployVersion();
+  console.log(`Deploy version: ${deployVersion}`);
   console.log("Typechecking and building frontend...");
   await runLocal("npx", ["tsc", "--noEmit"]);
   await runLocal("npm", ["run", "build"], {

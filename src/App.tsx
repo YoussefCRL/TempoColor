@@ -13,6 +13,7 @@ import {
   type ProgramDayCompletionLog,
   type WeightProgressLog
 } from "./progressApi";
+import { APP_VERSION } from "./appVersion";
 
 type Phase = {
   id: string;
@@ -5954,7 +5955,10 @@ export default function App() {
     return (
       <div className="auth-shell">
         <section className="panel auth-card">
-          <div className="brand">TempoColor</div>
+          <div className="brand-row">
+            <div className="brand">TempoColor</div>
+            <span className="app-version">v{APP_VERSION}</span>
+          </div>
           <div className="subtitle">
             {authMode === "login" ? "Log in to load your workouts." : "Create an account to start training."}
           </div>
@@ -6010,7 +6014,10 @@ export default function App() {
     return (
       <div className="auth-shell">
         <section className="panel auth-card">
-          <div className="brand">TempoColor</div>
+          <div className="brand-row">
+            <div className="brand">TempoColor</div>
+            <span className="app-version">v{APP_VERSION}</span>
+          </div>
           <div className="subtitle">Loading {currentUserLabel}...</div>
         </section>
       </div>
@@ -6021,7 +6028,10 @@ export default function App() {
     <div className="app">
       <header className={`header ${isHeaderCompact ? "compact" : ""}`}>
         <div className="header-main">
-          <div className="brand">TempoColor</div>
+          <div className="brand-row">
+            <div className="brand">TempoColor</div>
+            <span className="app-version">v{APP_VERSION}</span>
+          </div>
           <div className="subtitle">Color-timed tempo training with saved presets.</div>
         </div>
         <div className="header-actions">

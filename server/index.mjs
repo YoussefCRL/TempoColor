@@ -52,6 +52,9 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
+  if (req.path.startsWith("/api")) {
+    res.setHeader("Cache-Control", "no-store");
+  }
   res.setHeader(
     "Access-Control-Allow-Headers",
     req.headers["access-control-request-headers"] || "Content-Type"

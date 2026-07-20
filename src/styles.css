@@ -69,10 +69,23 @@ body {
   min-width: 0;
 }
 
+.brand-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .brand {
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.app-version {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .subtitle {
