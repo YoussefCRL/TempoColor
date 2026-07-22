@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/TempoColor/",
+  base: process.env.VITE_BASE_PATH || "/TempoColor/",
   server: {
     host: true,
     port: 5173,

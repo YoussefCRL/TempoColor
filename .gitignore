@@ -80,6 +80,7 @@ web_modules/
 .env.local
 .deploy-prod.env.tmp
 .deploy-prod-node/
+.deploy-prod-dist/
 .firebase/
 firebase-service-account*.json
 *.service-account.local.json

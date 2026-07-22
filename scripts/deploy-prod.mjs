@@ -282,6 +282,18 @@ const main = async () => {
   await runLocal("npx", ["tsc", "--noEmit"]);
   await runLocal("npm", ["run", "build"], {
     env: {
+      VITE_BASE_PATH: "/",
+      VITE_API_BASE_URL: "/api"
+    }
+  });
+  const remoteFrontendDist = path.join(rootDir, ".deploy-prod-dist");
+  await fs.rm(remoteFrontendDist, { recursive: true, force: true });
+  await fs.cp(path.join(rootDir, "dist"), remoteFrontendDist, { recursive: true });
+
+  console.log("Building GitHub Pages frontend...");
+  await runLocal("npm", ["run", "build"], {
+    env: {
+      VITE_BASE_PATH: "/TempoColor/",
       VITE_API_BASE_URL: apiBaseUrl
     }
   });
@@ -298,6 +310,9 @@ const main = async () => {
     await uploadFile(sftp, path.join(rootDir, "package.json"), `${remotePath}/package.json`);
     await uploadFile(sftp, path.join(rootDir, "package-lock.json"), `${remotePath}/package-lock.json`);
     await uploadDirectory(sftp, path.join(rootDir, "server"), `${remotePath}/server`);
+    console.log("Uploading frontend to gymfi...");
+    await execRemote(client, `cd ${quoteShell(remotePath)} && rm -rf dist`);
+    await uploadDirectory(sftp, remoteFrontendDist, `${remotePath}/dist`);
     const dependencyFingerprint = await getDependencyFingerprint();
     const remoteDependencyFingerprint = (
       await execRemoteOutput(client, `cd ${quoteShell(remotePath)} && cat tmp/dependencies.hash 2>/dev/null || true`)
