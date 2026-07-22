@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Client } from "ssh2";
@@ -11,20 +12,17 @@ dotenv.config();
 const rootDir = process.cwd();
 const remotePath =
   process.env.PROD_REMOTE_PATH ||
-  "/var/www/vhosts/trackplus.app/commontestsdonotdelete.api.trackplus.app";
+  "/root/gymfi";
 const apiBaseUrl =
-  process.env.PROD_API_BASE_URL || "https://commontestsdonotdelete.api.trackplus.app/api";
+  process.env.PROD_API_BASE_URL || "http://85.215.161.161/api";
 const requiredRemotePathSegment =
-  process.env.PROD_REMOTE_PATH_REQUIRED_SEGMENT || "commontestsdonotdelete.api.trackplus.app";
+  process.env.PROD_REMOTE_PATH_REQUIRED_SEGMENT || "/root/gymfi";
 const minimumDeployVersion = "1.0.1";
 
 const required = [
   "PROD_SSH_HOST",
   "PROD_SSH_USER",
-  "PROD_SSH_PASSWORD",
-  "MYSQL_URL",
-  "MYSQL_DATABASE",
-  "MYSQL_SSL_CA_CERT"
+  "PROD_SSH_PASSWORD"
 ];
 
 const missing = required.filter((key) => !process.env[key]);
@@ -41,7 +39,7 @@ if (!remotePath.includes(requiredRemotePathSegment)) {
 const runLocal = (command, args, options = {}) =>
   new Promise((resolve, reject) => {
     const child = spawn(command, args, {
-      cwd: rootDir,
+      cwd: options.cwd || rootDir,
       stdio: "inherit",
       shell: process.platform === "win32",
       env: {
@@ -57,6 +55,16 @@ const runLocal = (command, args, options = {}) =>
       }
     });
   });
+
+const prepareProductionNodeModules = async () => {
+  const tempDir = path.join(rootDir, ".deploy-prod-node");
+  await fs.rm(tempDir, { recursive: true, force: true });
+  await fs.mkdir(tempDir, { recursive: true });
+  await fs.copyFile(path.join(rootDir, "package.json"), path.join(tempDir, "package.json"));
+  await fs.copyFile(path.join(rootDir, "package-lock.json"), path.join(tempDir, "package-lock.json"));
+  await runLocal("npm", ["ci", "--omit=dev"], { cwd: tempDir });
+  return tempDir;
+};
 
 const parseVersion = (value) => {
   const match = String(value || "").match(/^(\d+)\.(\d+)\.(\d+)$/);
@@ -100,6 +108,20 @@ const updatePackageLockVersion = async (nextVersion) => {
     lock.packages[""].version = nextVersion;
   }
   await writeJsonFile(lockPath, lock);
+};
+
+const getDependencyFingerprint = async () => {
+  const packageJson = JSON.parse(await fs.readFile(path.join(rootDir, "package.json"), "utf8"));
+  const packageLock = JSON.parse(await fs.readFile(path.join(rootDir, "package-lock.json"), "utf8"));
+  return crypto
+    .createHash("sha256")
+    .update(
+      JSON.stringify({
+        dependencies: packageJson.dependencies || {},
+        lockDependencies: packageLock.packages?.[""]?.dependencies || {}
+      })
+    )
+    .digest("hex");
 };
 
 const bumpDeployVersion = async () => {
@@ -156,6 +178,32 @@ const execRemote = (client, command) =>
       stream.stderr.on("data", (data) => {
         stderr += data.toString();
         process.stderr.write(data);
+      });
+    });
+  });
+
+const execRemoteOutput = (client, command) =>
+  new Promise((resolve, reject) => {
+    client.exec(command, (error, stream) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      let stdout = "";
+      let stderr = "";
+      stream
+        .on("close", (code) => {
+          if (code === 0) {
+            resolve(stdout);
+          } else {
+            reject(new Error(`Remote command failed (${code}): ${command}\n${stderr}`));
+          }
+        })
+        .on("data", (data) => {
+          stdout += data.toString();
+        });
+      stream.stderr.on("data", (data) => {
+        stderr += data.toString();
       });
     });
   });
@@ -222,11 +270,9 @@ const uploadDirectory = async (sftp, localDir, remoteDir) => {
 const makeProductionEnv = () =>
   [
     `NODE_ENV=production`,
-    `API_PORT=${process.env.API_PORT || 3001}`,
+    `API_PORT=${process.env.API_PORT || 80}`,
     `CORS_ALLOWED_ORIGINS=${process.env.CORS_ALLOWED_ORIGINS || "https://youssefcrl.github.io,http://localhost:5173"}`,
-    `MYSQL_URL=${process.env.MYSQL_URL}`,
-    `MYSQL_DATABASE=${process.env.MYSQL_DATABASE}`,
-    `MYSQL_SSL_CA_CERT=${JSON.stringify(process.env.MYSQL_SSL_CA_CERT).slice(1, -1)}`
+    `SQLITE_DB_PATH=${process.env.SQLITE_DB_PATH || `${remotePath}/data/gymify.sqlite`}`
   ].join("\n") + "\n";
 
 const main = async () => {
@@ -239,7 +285,6 @@ const main = async () => {
       VITE_API_BASE_URL: apiBaseUrl
     }
   });
-
   console.log("Connecting to production server...");
   const client = await connectSsh();
   try {
@@ -253,10 +298,26 @@ const main = async () => {
     await uploadFile(sftp, path.join(rootDir, "package.json"), `${remotePath}/package.json`);
     await uploadFile(sftp, path.join(rootDir, "package-lock.json"), `${remotePath}/package-lock.json`);
     await uploadDirectory(sftp, path.join(rootDir, "server"), `${remotePath}/server`);
+    const dependencyFingerprint = await getDependencyFingerprint();
+    const remoteDependencyFingerprint = (
+      await execRemoteOutput(client, `cd ${quoteShell(remotePath)} && cat tmp/dependencies.hash 2>/dev/null || true`)
+    ).trim();
+    if (remoteDependencyFingerprint === dependencyFingerprint) {
+      console.log("Production Node dependencies already match.");
+    } else {
+      console.log("Preparing and uploading production Node dependencies into gymfi...");
+      const productionInstallDir = await prepareProductionNodeModules();
+      await execRemote(client, `cd ${quoteShell(remotePath)} && rm -rf node_modules`);
+      await uploadDirectory(sftp, path.join(productionInstallDir, "node_modules"), `${remotePath}/node_modules`);
+      await execRemote(
+        client,
+        `cd ${quoteShell(remotePath)} && mkdir -p tmp && printf '%s' ${quoteShell(dependencyFingerprint)} > tmp/dependencies.hash`
+      );
+    }
     await uploadFile(
       sftp,
-      path.join(rootDir, "scripts", "setup-mysql.mjs"),
-      `${remotePath}/scripts/setup-mysql.mjs`
+      path.join(rootDir, "scripts", "setup-sqlite.mjs"),
+      `${remotePath}/scripts/setup-sqlite.mjs`
     );
 
     const tempEnvPath = path.join(rootDir, ".deploy-prod.env.tmp");
@@ -267,16 +328,22 @@ const main = async () => {
       await fs.rm(tempEnvPath, { force: true });
     }
 
-    console.log("Installing production dependencies and preparing MySQL schema...");
+    console.log("Preparing SQLite schema...");
     await execRemote(
       client,
-      `cd ${quoteShell(remotePath)} && /opt/plesk/node/20/bin/npm ci --omit=dev && /opt/plesk/node/20/bin/node scripts/setup-mysql.mjs`
+      `cd ${quoteShell(remotePath)} && node scripts/setup-sqlite.mjs`
     );
 
-    console.log("Restarting this Plesk Node app...");
+    console.log("Restarting this Node app inside the gymfi folder...");
     await execRemote(
       client,
-      `cd ${quoteShell(remotePath)} && mkdir -p tmp && touch tmp/restart.txt`
+      [
+        `cd ${quoteShell(remotePath)}`,
+        "mkdir -p tmp data",
+        "if [ -f tmp/app.pid ]; then pid=$(cat tmp/app.pid); if [ -n \"$pid\" ] && [ \"$(readlink /proc/$pid/cwd 2>/dev/null)\" = \"$PWD\" ]; then kill \"$pid\" || true; fi; fi",
+        "for pid in $(pgrep -x node || true); do if [ \"$(readlink /proc/$pid/cwd 2>/dev/null)\" = \"$PWD\" ] && tr '\\0' ' ' < /proc/$pid/cmdline | grep -qx 'node app.js '; then kill \"$pid\" || true; fi; done",
+        "(nohup node app.js > tmp/app.log 2>&1 < /dev/null & echo $! > tmp/app.pid)"
+      ].join(" && ")
     );
   } finally {
     client.end();

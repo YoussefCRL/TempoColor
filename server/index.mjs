@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   createUser,
+  getDatabasePath,
   getPool,
   getRecentProgramDayCompletionLogs,
   getRecentWeightProgressLogs,
@@ -74,7 +75,7 @@ app.get(
   "/api/health",
   asyncHandler(async (_req, res) => {
     await getPool();
-    res.json({ ok: true, database: process.env.MYSQL_DATABASE || "gymify" });
+    res.json({ ok: true, database: "sqlite", path: getDatabasePath() });
   })
 );
 

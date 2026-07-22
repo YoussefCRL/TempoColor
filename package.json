@@ -1,6 +1,6 @@
 {
   "name": "tempo-color",
-  "version": "1.0.5",
+  "version": "1.0.9",
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:api\"",
     "dev:web": "vite",
@@ -11,14 +11,14 @@
     "deploy": "npm run deploy:prod",
     "deploy:prod": "node scripts/deploy-prod.mjs",
     "deploy:pages": "gh-pages -d dist --add",
-    "db:setup": "node scripts/setup-mysql.mjs"
+    "db:setup": "node scripts/setup-sqlite.mjs"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mysql2": "^3.23.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "sql.js": "^1.14.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
