@@ -1419,6 +1419,749 @@ const YOUSSEF_COACH_PLAN_WORKOUTS_SOURCE: unknown[] = [
         ]
       }
     ]
+  },
+  {
+    name: "Balanced Anime Athletic Body - Day 1 Upper Strength / Clean Frame",
+    hidden: false,
+    exercises: [
+      {
+        name: "Incline Dumbbell Press",
+        weight: "Moderate-Heavy",
+        progression: "Add reps until all sets hit 10 clean reps, then increase each dumbbell by the smallest jump.",
+        advice:
+          "Build upper chest without turning the session into a chest-size chase. Keep shoulder blades pinned, ribs down, and stop with 1-2 reps in reserve.",
+        sets: 4,
+        reps: "6-10",
+        rest: "120 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Pause", seconds: 1, color: "#64b4ff" },
+          { label: "Press", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Chest-Supported Row",
+        weight: "Moderate-Heavy",
+        progression: "Add load when every set reaches 12 reps with the chest glued to the pad.",
+        advice:
+          "Strong posture and balanced back thickness. Pull elbows toward the ribs, pause briefly, and avoid chasing a huge lat flare.",
+        sets: 4,
+        reps: "8-12",
+        rest: "90 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Row", seconds: 2, color: "#7adcb0" },
+          { label: "Hold", seconds: 1, color: "#64b4ff" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Seated Dumbbell Shoulder Press",
+        weight: "Moderate",
+        progression: "Progress reps first, then load only if ribs stay down and shoulders feel clean.",
+        advice:
+          "Build normal strong shoulders, not bulky pressing volume. Keep the range controlled and stop before grinding.",
+        sets: 3,
+        reps: "6-10",
+        rest: "120 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 2, color: "#ff8f86" },
+          { label: "Press", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Neutral-Grip Lat Pulldown",
+        weight: "Moderate",
+        progression: "Increase load after all sets hit 12 clean reps without leaning back.",
+        advice:
+          "Train back strength and posture without wide-grip width obsession. Pull elbows down, keep chest tall, and control the return.",
+        sets: 3,
+        reps: "8-12",
+        rest: "90 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Pull", seconds: 2, color: "#7adcb0" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Cable Lateral Raise",
+        weight: "Light-Moderate",
+        progression: "Add reps before load. Keep the shoulder line clean instead of forcing heavy swings.",
+        advice:
+          "Small shoulder-cap dose for proportion. Lead with the elbow, no shrugging, no body English.",
+        sets: 3,
+        reps: "12-18",
+        rest: "45-60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Raise", seconds: 2, color: "#7adcb0" },
+          { label: "Control", seconds: 1, color: "#64b4ff" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Face Pull",
+        weight: "Light",
+        progression: "Progress reps first while keeping traps relaxed.",
+        advice:
+          "Posture and shoulder health. Pull toward eye level, rotate cleanly, and keep the neck quiet.",
+        sets: 3,
+        reps: "15-20",
+        rest: "60 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Pull", seconds: 2, color: "#7adcb0" },
+          { label: "Hold", seconds: 1, color: "#64b4ff" },
+          { label: "Return", seconds: 2, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Hanging Knee Raise",
+        weight: "Bodyweight",
+        progression: "Add reps first; move to straight-leg raises only when pelvis control is strict.",
+        advice:
+          "Core control for a tight waistline. Posteriorly tilt the pelvis and avoid swinging.",
+        sets: 3,
+        reps: "10-15",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["skill", "strength"],
+        phases: [
+          { label: "Raise", seconds: 2, color: "#7adcb0" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Balanced Anime Athletic Body - Day 2 Lower Athletic Strength",
+    hidden: false,
+    exercises: [
+      {
+        name: "Front Squat / High-Bar Squat",
+        weight: "Moderate-Heavy",
+        progression: "Add 2.5 kg when all sets reach 8 reps with full depth and no form drift.",
+        advice:
+          "Athletic leg strength, not thigh-size chasing. Stay upright, brace hard, and keep clean depth.",
+        sets: 4,
+        reps: "5-8",
+        rest: "150 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Bottom", seconds: 1, color: "#64b4ff" },
+          { label: "Stand", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Romanian Deadlift",
+        weight: "Moderate-Heavy",
+        progression: "Increase load after every set hits 10 reps with stable torso and deep hamstring control.",
+        advice:
+          "Build posterior-chain strength and athletic lines. Hips back, lats tight, no lower-back finish.",
+        sets: 4,
+        reps: "6-10",
+        rest: "120 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Stretch", seconds: 1, color: "#64b4ff" },
+          { label: "Rise", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Bulgarian Split Squat",
+        weight: "Dumbbells",
+        progression: "Add reps before increasing load. Keep both sides symmetrical.",
+        advice:
+          "Balanced quad and glute development. Long enough stance to feel athletic and stable, not a brutal pump contest.",
+        sets: 3,
+        reps: "8-10 / leg",
+        rest: "90 sec",
+        effortCapRir: 2,
+        setType: "per_leg",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Drive", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Hip Thrust",
+        weight: "Moderate",
+        progression: "Add load after all sets hit 12 clean reps with a real lockout pause.",
+        advice:
+          "Glute strength for proportion and power. Ribs down, pelvis tucked, and no lumbar arch at the top.",
+        sets: 3,
+        reps: "8-12",
+        rest: "90 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Drive", seconds: 2, color: "#7adcb0" },
+          { label: "Hold", seconds: 2, color: "#64b4ff" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Seated Leg Curl",
+        weight: "Moderate",
+        progression: "Increase load after all sets reach 15 reps with a controlled negative.",
+        advice:
+          "Hamstring support for knee health and balanced legs. Do not bounce the stack.",
+        sets: 3,
+        reps: "10-15",
+        rest: "75 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Curl", seconds: 2, color: "#7adcb0" },
+          { label: "Squeeze", seconds: 1, color: "#64b4ff" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Standing Calf Raise",
+        weight: "Moderate",
+        progression: "Add reps first, then load when all sets hit 15 with a full stretch.",
+        advice:
+          "Lower-leg balance. Pause in the stretch and at the top; no bouncing.",
+        sets: 4,
+        reps: "10-15",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Stretch", seconds: 2, color: "#ff8f86" },
+          { label: "Raise", seconds: 2, color: "#7adcb0" },
+          { label: "Top Hold", seconds: 1, color: "#64b4ff" }
+        ]
+      },
+      {
+        name: "Plank",
+        weight: "Bodyweight",
+        progression: "Add hold time only while ribs stay down and hips stay level.",
+        advice:
+          "Stability and waist control. Stop before the low back sags.",
+        sets: 3,
+        reps: "45-60 sec hold",
+        rest: "45 sec",
+        effortCapRir: 2,
+        setType: "hold_seconds",
+        intentTags: ["skill"],
+        phases: [{ label: "Hold", seconds: 45, color: "#64b4ff" }]
+      }
+    ]
+  },
+  {
+    name: "Balanced Anime Athletic Body - Day 3 Recovery / Mobility / Waist Control",
+    hidden: false,
+    exercises: [
+      {
+        name: "Easy Walk",
+        weight: "Bodyweight",
+        progression: "Add time only if recovery improves and legs feel fresher after.",
+        advice:
+          "Recovery pace. You should finish looser, not drained.",
+        sets: 1,
+        reps: "30-45 min block",
+        rest: "30 sec",
+        effortCapRir: 5,
+        setType: "duration_block",
+        intentTags: ["pump"],
+        phases: [{ label: "Walk", seconds: 1800, color: "#64b4ff" }]
+      },
+      {
+        name: "Hip Flexor Stretch",
+        weight: "Bodyweight",
+        progression: "Improve position before increasing time.",
+        advice:
+          "Open the front of the hips without arching the low back. Light glute squeeze on the rear side.",
+        sets: 2,
+        reps: "45 sec / side",
+        rest: "30 sec",
+        effortCapRir: 5,
+        setType: "hold_seconds",
+        intentTags: ["skill"],
+        phases: [{ label: "Hold", seconds: 45, color: "#64b4ff" }]
+      },
+      {
+        name: "Hamstring Stretch",
+        weight: "Bodyweight",
+        progression: "Add range slowly while breathing stays relaxed.",
+        advice:
+          "Restore posterior-chain length. Keep the spine long instead of forcing depth.",
+        sets: 2,
+        reps: "45 sec / side",
+        rest: "30 sec",
+        effortCapRir: 5,
+        setType: "hold_seconds",
+        intentTags: ["skill"],
+        phases: [{ label: "Hold", seconds: 45, color: "#64b4ff" }]
+      },
+      {
+        name: "Dead Bug",
+        weight: "Bodyweight",
+        progression: "Slow the tempo before adding reps.",
+        advice:
+          "Core control without waist-thickening load. Keep ribs down and move slowly.",
+        sets: 3,
+        reps: "10 / side",
+        rest: "45 sec",
+        effortCapRir: 3,
+        setType: "per_leg",
+        intentTags: ["skill"],
+        phases: [
+          { label: "Reach", seconds: 2, color: "#7adcb0" },
+          { label: "Return", seconds: 2, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Abdominal Vacuum Holds",
+        weight: "Bodyweight",
+        progression: "Add 5 sec per hold before adding rounds.",
+        advice:
+          "Waist-control practice. Pull inward and upward while neck and shoulders stay relaxed.",
+        sets: 5,
+        reps: "30-45 sec hold",
+        rest: "30 sec",
+        effortCapRir: 4,
+        setType: "hold_seconds",
+        intentTags: ["skill"],
+        phases: [
+          { label: "Exhale", seconds: 5, color: "#ff9f0a" },
+          { label: "Vacuum Hold", seconds: 30, color: "#64b4ff" },
+          { label: "Release", seconds: 5, color: "#7adcb0" }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Balanced Anime Athletic Body - Day 4 Push / Arms / Shoulder Detail",
+    hidden: false,
+    exercises: [
+      {
+        name: "Weighted Dip / Push-Up",
+        weight: "Bodyweight + load optional",
+        progression: "Add reps first; add load only after all sets hit 12 with shoulder comfort.",
+        advice:
+          "Athletic pressing strength. Use controlled depth and stop before chest or triceps grinding.",
+        sets: 4,
+        reps: "6-12",
+        rest: "120 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Press", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Low-Incline Machine Press",
+        weight: "Moderate",
+        progression: "Progress to 12 reps all sets before increasing load.",
+        advice:
+          "Clean upper-chest support without high-volume chest growth. Keep constant tension and a smooth path.",
+        sets: 3,
+        reps: "8-12",
+        rest: "90 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 2, color: "#ff8f86" },
+          { label: "Press", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Cable Fly",
+        weight: "Light-Moderate",
+        progression: "Add reps before load. Keep the squeeze clean and shoulder-friendly.",
+        advice:
+          "Shape and control only. Do not turn this into a chest pump marathon.",
+        sets: 2,
+        reps: "12-15",
+        rest: "60 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Stretch", seconds: 2, color: "#ff8f86" },
+          { label: "Squeeze", seconds: 2, color: "#64b4ff" },
+          { label: "Return", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Machine / Cable Lateral Raise",
+        weight: "Light-Moderate",
+        progression: "Add reps before adding load. Keep every rep strict.",
+        advice:
+          "Shoulder detail for proportion, not exaggerated width. Stop if traps dominate.",
+        sets: 4,
+        reps: "12-18",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Raise", seconds: 2, color: "#7adcb0" },
+          { label: "Hold", seconds: 1, color: "#64b4ff" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Rear Delt Fly",
+        weight: "Light",
+        progression: "Progress reps first with strict shoulder-blade control.",
+        advice:
+          "Rear shoulder and posture detail. Keep traps quiet and move with control.",
+        sets: 3,
+        reps: "15-20",
+        rest: "60 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Open", seconds: 2, color: "#7adcb0" },
+          { label: "Hold", seconds: 1, color: "#64b4ff" },
+          { label: "Return", seconds: 2, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Rope Pressdown",
+        weight: "Moderate",
+        progression: "Add reps before load; keep elbows fixed.",
+        advice:
+          "Arm balance without arm-day bulk. Full lockout, controlled return.",
+        sets: 3,
+        reps: "10-15",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Press", seconds: 2, color: "#7adcb0" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Incline Dumbbell Curl",
+        weight: "Moderate",
+        progression: "Add reps first, then load with full extension maintained.",
+        advice:
+          "Athletic arm shape. Keep shoulders back and avoid swinging.",
+        sets: 3,
+        reps: "10-12",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Curl", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Hollow Body Hold",
+        weight: "Bodyweight",
+        progression: "Add hold time only if the low back stays pressed down.",
+        advice:
+          "Line control and tight-waist strength. Keep ribs down and breathe shallowly.",
+        sets: 3,
+        reps: "25-40 sec hold",
+        rest: "45 sec",
+        effortCapRir: 2,
+        setType: "hold_seconds",
+        intentTags: ["skill"],
+        phases: [{ label: "Hold", seconds: 30, color: "#64b4ff" }]
+      }
+    ]
+  },
+  {
+    name: "Balanced Anime Athletic Body - Day 5 Pull / Posterior Chain / Posture",
+    hidden: false,
+    exercises: [
+      {
+        name: "Neutral-Grip Pull-Up",
+        weight: "Bodyweight + load optional",
+        progression: "Add reps until all sets hit 8, then add the smallest load jump.",
+        advice:
+          "Strength and posture without exaggerated width. Pull cleanly, pause near the top, and avoid kipping.",
+        sets: 4,
+        reps: "5-8",
+        rest: "120 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Pull", seconds: 2, color: "#7adcb0" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "One-Arm Cable Row",
+        weight: "Moderate",
+        progression: "Add load once all sets hit 12 per side with no torso twist.",
+        advice:
+          "Symmetrical back strength. Drive elbow back and slightly down while the ribcage stays stacked.",
+        sets: 3,
+        reps: "10-12 / side",
+        rest: "75 sec",
+        effortCapRir: 2,
+        setType: "per_leg",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Row", seconds: 2, color: "#7adcb0" },
+          { label: "Hold", seconds: 1, color: "#64b4ff" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Seated Row",
+        weight: "Moderate",
+        progression: "Progress reps before load; keep chest tall and shoulders controlled.",
+        advice:
+          "Back density for a strong normal frame. Do not turn it into a heaving lower-back movement.",
+        sets: 3,
+        reps: "8-12",
+        rest: "90 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Row", seconds: 2, color: "#7adcb0" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Straight-Arm Pulldown",
+        weight: "Light-Moderate",
+        progression: "Add reps before load while keeping elbows soft and ribs down.",
+        advice:
+          "Lat control and posture, not width overload. Move slowly and keep tension smooth.",
+        sets: 2,
+        reps: "12-15",
+        rest: "60 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Pull", seconds: 2, color: "#7adcb0" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "45-Degree Back Extension",
+        weight: "Bodyweight + plate optional",
+        progression: "Increase reps first, then add load only with perfect glute and hamstring control.",
+        advice:
+          "Posterior-chain strength and posture. Hinge through hips, brace, and avoid snapping into lumbar extension.",
+        sets: 3,
+        reps: "10-15",
+        rest: "75 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Rise", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Hammer Curl",
+        weight: "Moderate",
+        progression: "Add reps first with strict elbow position.",
+        advice:
+          "Small arm-strength dose. Keep it clean and stop before sloppy pump work.",
+        sets: 2,
+        reps: "10-14",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Curl", seconds: 2, color: "#7adcb0" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Farmer Carry",
+        weight: "Heavy dumbbells",
+        progression: "Add distance first, then load while posture stays tall.",
+        advice:
+          "Real-world strength and trunk stiffness. Walk tall, ribs stacked, no leaning.",
+        sets: 4,
+        reps: "30-40 meters",
+        rest: "75 sec",
+        effortCapRir: 2,
+        setType: "duration_block",
+        intentTags: ["strength", "skill"],
+        phases: [{ label: "Carry", seconds: 30, color: "#64b4ff" }]
+      },
+      {
+        name: "Ab Wheel / Stability Ball Rollout",
+        weight: "Bodyweight",
+        progression: "Increase range before reps. Stop if the low back extends.",
+        advice:
+          "Anti-extension core strength for a tight midsection. Move slowly and keep pelvis tucked.",
+        sets: 3,
+        reps: "8-12",
+        rest: "60 sec",
+        effortCapRir: 2,
+        setType: "reps",
+        intentTags: ["skill", "strength"],
+        phases: [
+          { label: "Reach", seconds: 3, color: "#ff8f86" },
+          { label: "Return", seconds: 2, color: "#7adcb0" }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Balanced Anime Athletic Body - Day 6 Full Body Athletic Optional",
+    hidden: false,
+    exercises: [
+      {
+        name: "Trap Bar Deadlift",
+        weight: "Moderate-Heavy",
+        progression: "Add 2.5-5 kg only when all sets are fast, stable, and technically clean.",
+        advice:
+          "Strong normal-body power. Keep the volume low and never grind this optional day.",
+        sets: 3,
+        reps: "3-5",
+        rest: "150 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Drive", seconds: 2, color: "#7adcb0" },
+          { label: "Lower", seconds: 2, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Goblet Squat",
+        weight: "Moderate dumbbell",
+        progression: "Add reps before load while keeping depth and posture clean.",
+        advice:
+          "Technique and blood flow, not heavy leg fatigue. Stay smooth.",
+        sets: 3,
+        reps: "10-12",
+        rest: "75 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 3, color: "#ff8f86" },
+          { label: "Stand", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Incline Dumbbell Press",
+        weight: "Moderate",
+        progression: "Progress reps first; keep the load below grinding.",
+        advice:
+          "Light upper-chest strength repeat. Keep it crisp and leave recovery for next week.",
+        sets: 3,
+        reps: "8-10",
+        rest: "75 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 2, color: "#ff8f86" },
+          { label: "Press", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Chest-Supported Row",
+        weight: "Moderate",
+        progression: "Add reps first with strict pause and control.",
+        advice:
+          "Posture reinforcement without extra back-size chasing.",
+        sets: 3,
+        reps: "8-10",
+        rest: "75 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Row", seconds: 2, color: "#7adcb0" },
+          { label: "Return", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Walking Lunge",
+        weight: "Light-Moderate dumbbells",
+        progression: "Add reps before load and stop if legs feel heavy from Day 2.",
+        advice:
+          "Athletic coordination and leg balance. Keep strides controlled and symmetrical.",
+        sets: 2,
+        reps: "10 / leg",
+        rest: "75 sec",
+        effortCapRir: 3,
+        setType: "per_leg",
+        intentTags: ["strength"],
+        phases: [
+          { label: "Lower", seconds: 2, color: "#ff8f86" },
+          { label: "Step", seconds: 2, color: "#7adcb0" }
+        ]
+      },
+      {
+        name: "Cable Lateral Raise",
+        weight: "Light",
+        progression: "Add reps only. This is a shape touch, not a heavy delt day.",
+        advice:
+          "Low-fatigue shoulder detail. No swinging or trap takeover.",
+        sets: 2,
+        reps: "15-20",
+        rest: "45 sec",
+        effortCapRir: 3,
+        setType: "reps",
+        intentTags: ["pump"],
+        phases: [
+          { label: "Raise", seconds: 2, color: "#7adcb0" },
+          { label: "Lower", seconds: 3, color: "#ff8f86" }
+        ]
+      },
+      {
+        name: "Incline Walk / Bike",
+        weight: "Cardio",
+        progression: "Add 1-2 min only if recovery remains excellent.",
+        advice:
+          "Conditioning finish. Keep it conversational and leave the gym feeling better than when you started.",
+        sets: 1,
+        reps: "15-20 min block",
+        rest: "30 sec",
+        effortCapRir: 4,
+        setType: "duration_block",
+        intentTags: ["pump"],
+        phases: [{ label: "Block", seconds: 900, color: "#64b4ff" }]
+      }
+    ]
   }
 ];
 
@@ -3854,7 +4597,82 @@ const buildYoussefProgramPlans = (workouts: Workout[]): ProgramPlan[] => {
     )
   };
 
-  return [silhouettePriority, perfectAnatomy, widthForge, strengthHourglass, leanSculpt];
+  const balancedAnimeAthleticBody: ProgramPlan = {
+    id: "program-balanced-anime-athletic-body",
+    name: "Balanced Anime Athletic Body",
+    description:
+      "Aesthetic and strong normal-sized male physique: balanced shoulders, upper chest, posture, athletic legs, glutes, and waist control without bodybuilding bulk or V-shape exaggeration.",
+    days: buildProgramDaysFromConfig(
+      workouts,
+      [
+        {
+          dayIndex: 1,
+          name: "Day 1 - Upper Strength / Clean Frame",
+          optional: false,
+          workoutName: "Balanced Anime Athletic Body - Day 1 Upper Strength / Clean Frame",
+          notes:
+            "Balanced upper strength: upper chest, rowing posture, normal shoulder detail, and core control. No chest or lat size chasing."
+        },
+        {
+          dayIndex: 2,
+          name: "Day 2 - Lower Athletic Strength",
+          optional: false,
+          workoutName: "Balanced Anime Athletic Body - Day 2 Lower Athletic Strength",
+          notes:
+            "Strong legs and glutes with controlled volume. Build athletic lower-body power without oversized thigh fatigue."
+        },
+        {
+          dayIndex: 3,
+          name: "Day 3 - Recovery / Mobility / Waist Control",
+          optional: false,
+          workoutName: "Balanced Anime Athletic Body - Day 3 Recovery / Mobility / Waist Control",
+          notes:
+            "Recovery day with walking, mobility, dead bugs, and vacuums. Finish fresher than you started."
+        },
+        {
+          dayIndex: 4,
+          name: "Day 4 - Push / Arms / Shoulder Detail",
+          optional: false,
+          workoutName: "Balanced Anime Athletic Body - Day 4 Push / Arms / Shoulder Detail",
+          notes:
+            "Pressing, arms, and shoulder detail in balanced doses. Enough to look athletic, not bulky."
+        },
+        {
+          dayIndex: 5,
+          name: "Day 5 - Pull / Posterior Chain / Posture",
+          optional: false,
+          workoutName: "Balanced Anime Athletic Body - Day 5 Pull / Posterior Chain / Posture",
+          notes:
+            "Neutral-grip pulling, rows, posterior-chain work, carries, and rollouts for strong posture without exaggerated width."
+        },
+        {
+          dayIndex: 6,
+          name: "Day 6 - Full Body Athletic Optional",
+          optional: true,
+          workoutName: "Balanced Anime Athletic Body - Day 6 Full Body Athletic Optional",
+          notes:
+            "Use only if recovery is good. Low-grind full-body strength, shape touch, and easy conditioning."
+        },
+        {
+          dayIndex: 7,
+          name: "Day 7 - Rest",
+          optional: true,
+          workoutName: null,
+          notes: "No lifting. Walk, stretch, sleep, and recover for the next week."
+        }
+      ],
+      "balanced-anime-athletic-body"
+    )
+  };
+
+  return [
+    silhouettePriority,
+    perfectAnatomy,
+    widthForge,
+    strengthHourglass,
+    leanSculpt,
+    balancedAnimeAthleticBody
+  ];
 };
 
 const ensureProgramPlans = (

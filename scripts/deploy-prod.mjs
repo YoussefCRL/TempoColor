@@ -17,6 +17,8 @@ const apiBaseUrl =
   process.env.PROD_API_BASE_URL || "http://85.215.161.161/api";
 const requiredRemotePathSegment =
   process.env.PROD_REMOTE_PATH_REQUIRED_SEGMENT || "/root/gymfi";
+const remoteNodeCommand =
+  process.env.PROD_REMOTE_NODE_PATH || "/opt/plesk/node/20/bin/node";
 const minimumDeployVersion = "1.0.1";
 
 const required = [
@@ -346,7 +348,7 @@ const main = async () => {
     console.log("Preparing SQLite schema...");
     await execRemote(
       client,
-      `cd ${quoteShell(remotePath)} && node scripts/setup-sqlite.mjs`
+      `cd ${quoteShell(remotePath)} && ${quoteShell(remoteNodeCommand)} scripts/setup-sqlite.mjs`
     );
 
     console.log("Restarting this Node app inside the gymfi folder...");
@@ -356,8 +358,8 @@ const main = async () => {
         `cd ${quoteShell(remotePath)}`,
         "mkdir -p tmp data",
         "if [ -f tmp/app.pid ]; then pid=$(cat tmp/app.pid); if [ -n \"$pid\" ] && [ \"$(readlink /proc/$pid/cwd 2>/dev/null)\" = \"$PWD\" ]; then kill \"$pid\" || true; fi; fi",
-        "for pid in $(pgrep -x node || true); do if [ \"$(readlink /proc/$pid/cwd 2>/dev/null)\" = \"$PWD\" ] && tr '\\0' ' ' < /proc/$pid/cmdline | grep -qx 'node app.js '; then kill \"$pid\" || true; fi; done",
-        "(nohup node app.js > tmp/app.log 2>&1 < /dev/null & echo $! > tmp/app.pid)"
+        "for pid in $(pgrep -x node || true); do if [ \"$(readlink /proc/$pid/cwd 2>/dev/null)\" = \"$PWD\" ] && tr '\\0' ' ' < /proc/$pid/cmdline | grep -q ' app.js '; then kill \"$pid\" || true; fi; done",
+        `(nohup ${quoteShell(remoteNodeCommand)} app.js > tmp/app.log 2>&1 < /dev/null & echo $! > tmp/app.pid)`
       ].join(" && ")
     );
   } finally {

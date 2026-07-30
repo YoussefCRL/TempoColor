@@ -1,6 +1,6 @@
 {
   "name": "tempo-color",
-  "version": "1.0.11",
+  "version": "1.0.14",
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:api\"",
     "dev:web": "vite",
